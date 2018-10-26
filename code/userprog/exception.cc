@@ -53,11 +53,100 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
-    }
+switch(which) {
+
+case NoException: {
+	return;
+	}
+case SyscallException: {
+	switch(type)
+	{
+		case SC_Halt:
+		{
+			DEBUG('a', "Shutdown, initiated by user program.\n");
+   			interrupt->Halt();
+			break;
+		}
+		
+		case SC_ReadInt:
+		{
+			char *buffer=new char();
+			gSynchConsole->Read(buffer,7);
+			int result;
+			result=machine->myatoi(buffer);
+			machine->WriteRegister(2,result);
+			
+			printf("Test- ReadInt: %d\n,result);
+			delete buf;
+			break;
+		}
+		
+		case SC_PrintInt:
+		{
+			int number=(int) machine->ReadRegister(4);
+			char *data=new char[256];
+			machine->myitoa(num,data);
+			for(int i=0;data[i]!= '\0';i++)
+			{
+				gSynchConsole->Write(&data[i],1);
+			}
+			delete[] data;
+			break;
+		}
+
+		case SC_ReadChar:
+		{
+			int len;
+			char *data=new char();
+			len=gSynchConsole->Read(data,MAX_INT_LENGTH);
+			machine->WriteRegister(2,data[len-1]);
+			break;
+		}
+
+		case SC_PrintChar:
+		{
+			char data;
+			data=(char) machine->ReadRegister(4);
+			gSynchConsole->Write(&data,1);
+			break;
+		}
+
+	machine->registers[PrevPCReg]=machine->registers[PCReg];
+	machine->registers[PcReg]=machine->registers[NextPCReg];
+	machine->registers[NextPCReg]+=4;
+	break;
+	}
+case PageFaultException:
+	printf("\nNo valid translation found. (%d %d)\n",which,type);
+	interrupt->Halt();
+	break;
+case ReadOnlyException:
+	printf("\nWrite attempted to page marked \"read-only\". (%d %d)\n",which,type);
+	interrupt->Halt();
+	break;
+case BusErrorException:
+	printf("\nTranslation resulted in an invalid physical address. (%d %d)\n",which,type);
+	interrupt->Halt();
+	break;
+case AddressErrorException:
+	printf("\nnaligned reference or one that was beyond the end of the address space. (%d %d)\n",which,type);
+	interrupt->Halt();
+	break;
+case OverflowException:
+	printf("\nInteger overflow in add or sub. (%d %d)\n",which,type);
+	interrupt->Halt();
+	break;
+case IllegalInstrException:
+	printf("\nUnimplemented or reserved instr. (%d %d)\n",which,type);
+	interrupt->Halt();
+	break;
+case NumExceptionTypes:
+	interrupt->Halt();
+	break;
 }
+
+}
+
+		
+
+
