@@ -29,12 +29,19 @@ extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
 
+
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "synchcons.h"
 extern SynchConsole *gSynchConsole;
 extern Machine* machine;
 	// user program memory and registers
+
+extern Semaphore *addrLock;	// semaphore
+extern BitMap *gPhysPageBitMap;	// quan ly cac frame
+extern PTable *pTab;		// quan ly bang tien trinh
+extern STable *semTab;		// quan ly semaphore
+
 #endif
 
 #ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 
